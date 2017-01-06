@@ -8,6 +8,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     boolean isOperatorLast = false;
@@ -92,120 +94,77 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String calculateResult(String operations) {
-        String result = "";
-        char c = 0;
-        boolean firstOperator = true;
-        int operationPos = 0;
-        boolean thereAreOperations = true;
-        String operationToRepeat = "";
-        int operationsCounter = 0;
-        boolean operationDone = false;
+        int operatorCount = 0;
+        ArrayList<Character> simpleOperators = new ArrayList<>();
+        ArrayList<Character> priorityOperators = new ArrayList<>();
+        boolean hasPriorityOperation = false;
 
-        for (int i = 0; i < operations.length(); i++){
-            c = operations.charAt(i);
-            if (isOperator(c)){
-                operationsCounter++;
-                if (firstOperator) {
-                    operationPos = i;
-                    firstOperator = false;
+        for (int i = 0; i< operations.length(); i++){
+            if (isOperator(operations.charAt(i))){
+                operatorCount++;
+                if (operations.charAt(i) == '+' || operations.charAt(i) == '-')
+                    simpleOperators.add(operations.charAt(i));
+                if (operations.charAt(i) == 'x' || operations.charAt(i) == '/') {
+                    hasPriorityOperation = true;
+                    priorityOperators.add(operations.charAt(i));
                 }
+            }
+        }
 
-                if (c == 'x' || c == '/') {
-                    if (!operationDone) {
-                        operationPos = i;
+        String[] simpleValues = operations.split("[-+]", operatorCount+1);
 
-                        operationToRepeat = calculate(operations, c, operationPos);
-                        operationDone = true;
+        if (hasPriorityOperation){
+            int priorityCounter = 0;
+            for (int i = 0; i < simpleValues.length; i++){
+                String[] priorityValues = simpleValues[i].split("[x/%]",2);
+                if (priorityValues.length == 2){
+                    priorityCounter++;
+                    int firstNum = Integer.parseInt(priorityValues[0]);
+                    int secondNum = Integer.parseInt(priorityValues[1]);
+
+                    switch (priorityOperators.get(priorityCounter-1)){
+                        case 'x':
+                            simpleValues[i] = String.valueOf(firstNum*secondNum);
+                            break;
+                        case '/':
+                            simpleValues[i] = String.valueOf(firstNum/secondNum);
+                            break;
+                        case '%':
+                            simpleValues[i] = String.valueOf(firstNum%secondNum);
                     }
                 }
             }
         }
 
-        if (!operationDone){
-            operationToRepeat = calculate(operations, c, operationPos);
-        }
 
-        if (operationsCounter > 1){
-            calculateResult(operationToRepeat);
-        }
+        int firstNumber = Integer.parseInt(simpleValues[0]);
+        int secondNumber = 0;
+        int count = 0;
+        for (int i = 1; i< simpleValues.length; i++){
+            secondNumber = Integer.parseInt(simpleValues[i]);
 
-        return result;
-    }
+            char operator = simpleOperators.get(count);
 
-    private String calculate(String operation, char operator, int pos){
-        String result = "";
-        int res = 0;
-
-        String[] numbers=getNumbersForOperation(operation, pos);
-        int firsNum = Integer.parseInt(numbers[0]);
-        String firsPart = numbers[1];
-        int secondNum = Integer.parseInt(numbers[2]);
-        String secondPart = numbers[3];
-
-        result+=firsPart;
-
-        switch (operator){
-            case '+':
-                res = firsNum + secondNum;
-                break;
-            case '-':
-                res = firsNum - secondNum;
-                break;
-            case 'x':
-                res = firsNum * secondNum;
-                break;
-            case '/':
-                res = firsNum / secondNum;
-                break;
-            default:
-                break;
-        }
-        result += res;
-        result += secondPart;
-        return  result;
-    }
-
-    private String[] getNumbersForOperation(String operation, int pos){
-        String[] parts = new String[4];
-
-        String opFirstPart = operation.substring(0, pos);
-        String opSecondPart = operation.substring(pos,operation.length());
-
-        String firstPart = "";
-        String secondPart = "";
-
-        String firstOp = "";
-        String secondOp = "";
-
-        for (int i = opFirstPart.length(); i>0; i--){
-            if (firstOp.equals(""))
-                if (isOperator(opFirstPart.charAt(i-1))){
-                    String str = opFirstPart.substring(i,opFirstPart.length());
-                    firstPart = opFirstPart.substring(0, i);
-                    firstOp = str;
-                }
-        }
-
-        for (int i = 1; i<=opSecondPart.length(); i++){
-            if (secondOp.equals("")) {
-                if (isOperator(opSecondPart.charAt(i))) {
-                    secondOp = opSecondPart.substring(1, i);
-                    secondPart = opSecondPart.substring(i, opSecondPart.length());
-                } else if (i == opSecondPart.length()) {
-                    secondOp = opSecondPart.substring(1, opSecondPart.length());
-                    secondPart = opSecondPart.substring(i, opSecondPart.length());
-                }
+            switch (operator){
+                case '+':
+                    firstNumber = firstNumber+secondNumber;
+                    break;
+                case '-':
+                    firstNumber = firstNumber-secondNumber;
+                    break;
+                case 'x':
+                    firstNumber = firstNumber*secondNumber;
+                    break;
+                case '/':
+                    firstNumber = firstNumber/secondNumber;
+                    break;
             }
-
+            count++;
         }
 
-        parts[0] = firstOp;
-        parts[1] = firstPart;
-        parts[2] = secondOp;
-        parts[3] = secondPart;
-
-        return parts;
+        return String.valueOf(firstNumber);
     }
+
 
     private boolean isOperator(char c){
         return c == '+'|| c == '-'|| c == 'x'|| c == '/';
