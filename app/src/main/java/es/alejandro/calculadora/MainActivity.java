@@ -16,12 +16,11 @@ public class MainActivity extends AppCompatActivity {
     boolean portrait = true;
 
 
-    int copyNumber;
+    String copyNumber = "0";
 
     private char operation;
 
     private String operations = "";
-    private String result = "";
 
     private int resultInt;
     private int actualNumber;
@@ -51,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     public void operatorClick(View v){
 
         String pushedString = ((TextView)findViewById(v.getId())).getText().toString();
+        if (copyNumber.length() >= 1){
+            operations = operations.concat(copyNumber);
+        }
 
         if (!isOperatorLast){
             operations = operations.concat(pushedString);
@@ -87,8 +89,16 @@ public class MainActivity extends AppCompatActivity {
                 resetContent();
                 break;
             case R.id.calc_copy:
+                if (resultTv.getText().toString().length() >= 1) {
+                    copyNumber = resultTv.getText().toString();
+                    operations = operations.concat(copyNumber);
+                }else {
+                    copyNumber = "0";
+                    operations = operations.concat(copyNumber);
+                }
                 break;
             case R.id.calc_paste:
+                operationsTv.setText(copyNumber);
                 break;
         }
     }
